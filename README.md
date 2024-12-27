@@ -88,8 +88,9 @@ A continuación, se muestra un ejemplo práctico para crear un archivo BAM usand
    mkdir -p refs
    efetch -db nucleotide -format gb -id $ACC > refs/$ACC.gb
    cat refs/$ACC.gb | seqret -filter -feature -osformat fasta > refs/$ACC.fa
-   samtools faidx refs/$ACC.fa
-   bwa index refs/$ACC.fa
+   cat refs/$ACC.gb | seqret -filter -feature -osformat gff3 > refs/$ACC.gff
+   samtools faidx refs/$ACC.fa # Indexar FASTA para accesos rápidos
+   bwa index refs/$ACC.fa # Indexar FASTA para alineación con BWA
    ```
 
 3. **Descargar los datos de secuenciación:**
@@ -100,7 +101,7 @@ A continuación, se muestra un ejemplo práctico para crear un archivo BAM usand
 4. **Alinear las lecturas con bwa y convertirlas a BAM:**
    ```bash
    bwa mem refs/$ACC.fa ${SRR}_1.fastq ${SRR}_2.fastq | samtools sort > $SRR.bwa.bam
-   samtools index $SRR.bwa.bam
+   samtools index $SRR.bwa.bam # Permite un acceso rápido a regiones específicas del archivo
    ```
 
 5. **Alinear las lecturas con bowtie2 (opcional):**
@@ -125,18 +126,63 @@ Para comprender mejor los archivos SAM, se puede analizar un archivo utilizando 
    samtools view -H $SRR.bwa.bam
    ```
 
+   ```
+   @HD	VN:1.6	SO:coordinate
+   @SQ	SN:AF086833	LN:18959
+   @PG	ID:bwa	PN:bwa	VN:0.7.17-r1188	CL:bwa mem refs/AF086833.fa SRR1972739_1.fastq SRR1972739_2.fastq
+   @PG	ID:samtools	PN:samtools	PP:bwa	VN:1.13	CL:samtools sort
+   @PG	ID:samtools.1	PN:samtools	PP:samtools	VN:1.13	CL:samtools view -H SRR1972739.bwa.bam
+   ```
+
+   - @HD (Header Line - Línea de Encabezado): contiene información general sobre el archivo, como la versión del formato SAM/BAM y el orden de las secuencias.
+   - @SQ (Sequence Dictionary - Diccionario de Secuencias): Describe las secuencias de referencia utilizadas en el alineamiento (por ejemplo, cromosomas o contigs)..
+   - @PG (Program Line - Línea de Programa): Registra los programas que se utilizaron para generar o procesar el archivo.
+
 2. **Extraer información de columnas específicas:**
    ```bash
    samtools view $SRR.bwa.bam | cut -f 1,3,4 | head -5
    ```
-   Esto muestra los nombres de las lecturas, el nombre de la referencia y las posiciones de alineamiento.
+   
+   ```
+   SRR1972739.9152	AF086833	46
+   SRR1972739.4087	AF086833	62
+   SRR1972739.1404	AF086833	80
+   SRR1972739.7291	AF086833	103
+   SRR1972739.8376	AF086833	108
+   ```
 
+   Cada línea de salida representa una lectura alineada, con las siguientes columnas:
+
+   - Columna 1: SRR1972739.9152 (QNAME):
+
+     El identificador único de la lectura. Este nombre puede incluir información sobre el origen de la lectura.
+   
+   - Columna 3: AF086833 (RNAME):
+
+     Nombre de la referencia genómica (en este caso, AF086833). Esta podría ser un contig, cromosoma o genoma completo.
+
+   - Columna 4: 46 (POS):
+
+      La posición inicial en la referencia genómica donde se alinea la lectura. En este caso, la lectura comienza en la posición 46.
+
+   
 3. **Explorar las etiquetas opcionales:**
    ```bash
    samtools view $SRR.bwa.bam | cut -f 12,13,14 | head -5
    ```
-   Aquí se pueden analizar etiquetas como `NM` (distancia de edición) y `MD` (mismatches).
 
+   ```
+   NM:i:1	MD:Z:81C19	MC:Z:97M4S
+   NM:i:3	MD:Z:65C21C5A7	MC:Z:101M
+   NM:i:3	MD:Z:47C21C5A25	MC:Z:101M
+   NM:i:5	MD:Z:24C21C5A26A4A16	MC:Z:101M
+   NM:i:5	MD:Z:19C21C5A26A4A21	MC:Z:101M
+   ```
+
+   - NM:	Número total de diferencias ->	NM:i:1   
+   - MD:	Ubicación exacta de mismatches ->	MD:Z:81C19
+   - MC:	CIGAR de la lectura emparejada ->	MC:Z:97M4S
+   
 4. **Filtrar alineamientos por criterios específicos:**
    - Alineamientos en la hebra directa:
      ```bash
@@ -167,9 +213,10 @@ Para comprender mejor los archivos SAM, se puede analizar un archivo utilizando 
      ```
 
 3. **Cargar los datos en IGV:**
-   - Abre IGV y selecciona el genoma de referencia apropiado.
-   - Ve a `File > Load from File` y selecciona el archivo BAM o CRAM.
+   - Abre IGV y ve a `Genomes > Load Genome from File`, selecciona el genoma de referencia (AF086833.fa y AF086833.fa.fa).
+   - Ve a `File > Load from File` y selecciona el archivo BAM (SRR1972739.bwa.bam) o CRAM.
+   - Ve a `File > Load from File` y selecciona el archivo GFF (AF086833.gff).
 
 4. **Navegar por los alineamientos:**
-   - Usa la barra de búsqueda para ingresar una región específica (por ejemplo, `chr1:1000-2000`).
+   - Usa la barra de búsqueda para ingresar una región específica (por ejemplo, `AF086833:3,102-8,077`).
    - Explora las pistas de lectura para analizar variaciones, cobertura, y calidad de alineamiento.
