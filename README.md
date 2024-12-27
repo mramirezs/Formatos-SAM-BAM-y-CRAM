@@ -44,8 +44,6 @@ Los archivos SAM están diseñados para:
 1. **Almacenar alineamientos de manera estándar y eficiente.**
 2. **Permitir acceso rápido por coordenadas.**
 
-Por ejemplo, se puede recuperar alineamientos que se superpongan con una coordenada específica en milisegundos usando un archivo BAM ordenado.
-
 ---
 
 ### Creación de archivos SAM/BAM/CRAM
