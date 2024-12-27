@@ -1,6 +1,6 @@
 # Formatos SAM, BAM y CRAM
 
-Este repositorio contiene información esencial sobre los formatos SAM, BAM y CRAM utilizados en bioinformática para almacenar y procesar datos de alineamientos de secuencias. 
+El dia de hoy obtendremos información esencial sobre los formatos SAM, BAM y CRAM utilizados en bioinformática para almacenar y procesar datos de alineamientos de secuencias. 
 
 ---
 
