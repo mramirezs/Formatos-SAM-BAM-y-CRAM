@@ -89,6 +89,7 @@ A continuación, se muestra un ejemplo práctico para crear un archivo BAM usand
    efetch -db nucleotide -format gb -id $ACC > refs/$ACC.gb
    cat refs/$ACC.gb | seqret -filter -feature -osformat fasta > refs/$ACC.fa
    samtools faidx refs/$ACC.fa
+   bwa index refs/$ACC.fa
    ```
 
 3. **Descargar los datos de secuenciación:**
